@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>UNFINITUM // EFFERENT-008</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="stylesheet" href="/vendor/xterm.css">
+<script src="/vendor/xterm.js"></script>
+<script src="/vendor/addon-fit.js"></script>
+<style>
+:root{--ink:#06070b;--panel:#0d1017;--panel2:#141823;--line:#1f2633;--text:#dbe3ec;--dim:#7d8898;--faint:#4b5463;
+  --mint:#3df5a6;--fx:#ff7a1a;--cyan:#3ddcff;--mag:#ff4fd8;--amber:#ffd166;--red:#ff4d6d;--violet:#b28cff;
+  --mono:ui-monospace,"JetBrains Mono","SF Mono",Menlo,monospace}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--ink);color:var(--text);font:14px/1.4 -apple-system,system-ui,sans-serif;overscroll-behavior:none}
+body{background:linear-gradient(rgba(61,245,166,.03) 1px,transparent 1px) 0 0/100% 24px,linear-gradient(90deg,rgba(61,245,166,.03) 1px,transparent 1px) 0 0/24px 100%,var(--ink)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer;padding:0}
+.mono{font-family:var(--mono)}
+#app{max-width:640px;margin:0 auto;padding:14px 14px 40px;min-height:100%}
+.hdr{display:flex;align-items:center;justify-content:space-between;margin:4px 2px 14px}
+.brand{font:700 14px var(--mono);color:var(--fx);letter-spacing:1px;text-shadow:0 0 14px rgba(255,122,26,.55)}
+.brand small{color:var(--dim);font:500 10.5px var(--mono);letter-spacing:.3px;text-shadow:none}
+.pill{font:600 11px var(--mono);padding:3px 8px;border-radius:99px;border:1px solid currentColor}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}
+.card h3{margin:0 0 8px;font:700 11px var(--mono);letter-spacing:1.6px;color:var(--dim);text-transform:uppercase;display:flex;justify-content:space-between}
+.srv{display:flex;align-items:center;gap:10px;padding:10px 2px;border-top:1px solid var(--line)}
+.srv:first-of-type{border-top:0}
+.dot{width:9px;height:9px;border-radius:50%;flex:none;box-shadow:0 0 10px currentColor;background:currentColor}
+.grow{flex:1;min-width:0}.ell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub{font:12px var(--mono);color:var(--dim)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 14px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);font-weight:600}
+.btn.p{background:var(--fx);color:#1a0a00;border-color:transparent;box-shadow:0 4px 20px -6px rgba(255,122,26,.75)}
+.btn.d{color:var(--red);border-color:rgba(255,77,109,.4)}
+.btn.sm{padding:6px 10px;font-size:12.5px;border-radius:10px}
+.btn.b{width:100%}
+.row{display:flex;gap:8px;align-items:center}
+input.f,select.f,textarea.f{width:100%;background:var(--ink);border:1px solid var(--line);border-radius:11px;padding:10px 11px;outline:none;font-size:16px}
+input.f:focus,textarea.f:focus,select.f:focus{border-color:var(--fx)}
+textarea.f{min-height:90px;font:12px var(--mono)}
+label{display:block;font:600 10.5px var(--mono);letter-spacing:1.3px;color:var(--dim);text-transform:uppercase;margin:12px 0 5px}
+.fp{font:12px var(--mono);word-break:break-all;background:var(--ink);border:1px dashed var(--amber);color:var(--amber);padding:10px;border-radius:10px}
+.warn{border:1px solid var(--red);background:rgba(255,77,109,.08);color:#ffd3db;border-radius:12px;padding:12px;font-size:13px}
+.hint{font:11.5px var(--mono);color:var(--faint);margin-top:6px}
+.seg{display:flex;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:3px;margin:6px 0}
+.seg button{flex:1;padding:8px;border-radius:9px;color:var(--dim);font-weight:600;font-size:13px}
+.seg button.on{background:var(--panel2);color:var(--text)}
+.hidden{display:none!important}
+/* terminal view */
+#termview{position:fixed;inset:0;background:#06070b;display:flex;flex-direction:column;z-index:10}
+#tbar{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 8px) 10px 8px;border-bottom:1px solid var(--line);background:#0a0c12}
+#tbar .ttl{font:600 12.5px var(--mono);color:var(--fx)}
+#term{flex:1;min-height:0;padding:6px 4px 0 8px}
+#keys,#acts{display:flex;gap:6px;overflow-x:auto;padding:6px 8px;background:#0a0c12;border-top:1px solid var(--line);scrollbar-width:none}
+#keys::-webkit-scrollbar,#acts::-webkit-scrollbar{display:none}
+#keys button,#acts button{flex:none;padding:7px 11px;border-radius:9px;background:var(--panel2);border:1px solid var(--line);font:600 12.5px var(--mono)}
+#keys button.on{border-color:var(--fx);color:var(--fx)}
+#acts button{color:var(--fx)}
+#acts{padding-bottom:calc(env(safe-area-inset-bottom) + 6px)}
+#termview.kb #acts{display:none}
+#term .xterm-viewport{scrollbar-width:none}
+#term .xterm-viewport::-webkit-scrollbar{display:none}
+#term{touch-action:none}
+.toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--mint);color:var(--mint);padding:9px 14px;border-radius:12px;font:600 12.5px var(--mono);z-index:50;max-width:90%}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:grid;place-items:center;z-index:30;padding:20px}
+.overlay .card{max-width:420px;width:100%}
+.lockicon{font-size:42px;text-align:center;margin:8px 0}
+.secret{-webkit-text-security:disc;text-security:disc;font-family:var(--mono);letter-spacing:2px}
+.secret.shown{-webkit-text-security:none;text-security:none;letter-spacing:0}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="termview" class="hidden">
+  <div id="tbar"><button class="btn sm" id="tback">‹</button><div class="grow ell ttl" id="ttitle">session</div>
+    <button class="btn sm" id="tshare" title="share read-only">👁 share</button><button class="btn sm d" id="tclose">✕</button></div>
+  <div id="term"></div>
+  <div id="keys"></div>
+  <div id="acts"></div>
+</div>
+<div id="ovl"></div>
+<script>
+"use strict";
+const TG = window.Telegram && Telegram.WebApp;
+if (TG) { TG.ready(); TG.expand(); try { TG.setHeaderColor("#06070b"); TG.setBackgroundColor("#06070b"); } catch (e) {} }
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const QS = new URLSearchParams(location.search);
+function toast(m, ms = 2200) { document.querySelectorAll(".toast").forEach(x => x.remove()); const t = document.createElement("div"); t.className = "toast"; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), ms); try { TG.HapticFeedback.impactOccurred("light"); } catch (e) {} }
+const deviceId = (() => { let d = localStorage.getItem("nb_device"); if (!d) { d = crypto.getRandomValues(new Uint32Array(4)).join("-"); localStorage.setItem("nb_device", d); } return d; })();
+
+/* ======================= CloudStorage (with chunking) + local fallback for browser testing ======================= */
+const CS = (TG && TG.CloudStorage && TG.initData) ? {
+  get: k => new Promise(r => TG.CloudStorage.getItem(k, (e, v) => r(e ? null : (v || null)))),
+  set: (k, v) => new Promise((r, j) => TG.CloudStorage.setItem(k, v, (e, ok) => e ? j(e) : r(ok))),
+  del: k => new Promise(r => TG.CloudStorage.removeItem(k, () => r())),
+  keys: () => new Promise(r => TG.CloudStorage.getKeys((e, ks) => r(e ? [] : ks))),
+} : {
+  get: async k => localStorage.getItem("cs_" + k), set: async (k, v) => localStorage.setItem("cs_" + k, v),
+  del: async k => localStorage.removeItem("cs_" + k),
+  keys: async () => Object.keys(localStorage).filter(k => k.startsWith("cs_")).map(k => k.slice(3)),
+};
+const CHUNK = 3900;
+async function csPut(key, text) {
+  const old = await CS.get(key); if (old && old.startsWith("chunks:")) for (let i = 0; i < +old.slice(7); i++) await CS.del(`${key}_${i}`);
+  if (text.length <= CHUNK) return CS.set(key, text);
+  const n = Math.ceil(text.length / CHUNK);
+  for (let i = 0; i < n; i++) await CS.set(`${key}_${i}`, text.slice(i * CHUNK, (i + 1) * CHUNK));
+  return CS.set(key, "chunks:" + n);
+}
+async function csGet(key) {
+  const v = await CS.get(key); if (!v || !v.startsWith("chunks:")) return v;
+  let out = ""; for (let i = 0; i < +v.slice(7); i++) out += (await CS.get(`${key}_${i}`)) || ""; return out;
+}
+async function csDel(key) { const v = await CS.get(key); if (v && v.startsWith("chunks:")) for (let i = 0; i < +v.slice(7); i++) await CS.del(`${key}_${i}`); await CS.del(key); }
+
+/* ======================= vault: PBKDF2 (310k) -> AES-256-GCM, everything encrypted on-device ======================= */
+const b64 = b => btoa(String.fromCharCode(...new Uint8Array(b)));
+const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+let VKEY = null;
+async function deriveKey(pass, salt) {
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pass), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: 310000, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+}
+async function seal(obj, key = VKEY) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(JSON.stringify(obj)));
+  return "v1." + b64(iv) + "." + b64(ct);
+}
+async function open_(blob, key = VKEY) {
+  const [, iv, ct] = blob.split(".");
+  const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64(iv) }, key, unb64(ct));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+async function vaultMeta() { const m = await CS.get("nb_vault"); return m ? JSON.parse(m) : null; }
+async function vaultCreate(pass) {
+  const salt = crypto.getRandomValues(new Uint8Array(16)); const key = await deriveKey(pass, salt);
+  await CS.set("nb_vault", JSON.stringify({ v: 1, salt: b64(salt), check: await seal({ ok: "nullbyte" }, key) }));
+  VKEY = key;
+}
+async function vaultUnlock(pass) {
+  const m = await vaultMeta(); const key = await deriveKey(pass, unb64(m.salt));
+  try { const c = await open_(m.check, key); if (c.ok !== "nullbyte") throw 0; VKEY = key; return true; } catch (e) { return false; }
+}
+async function loadServers() {
+  const keys = (await CS.keys()).filter(k => /^nb_s_[a-z0-9]+$/.test(k));
+  const out = [];
+  for (const k of keys) { try { const s = await open_(await csGet(k)); s._k = k; out.push(s); } catch (e) {} }
+  return out.sort((a, b) => a.name.localeCompare(b.name));
+}
+async function saveServer(s) { const k = s._k || "nb_s_" + Math.random().toString(36).slice(2, 10); const c = { ...s }; delete c._k; await csPut(k, await seal(c)); s._k = k; }
+
+/* ======================= WebSocket ======================= */
+let WS = null, HELLO = null, listeners = [];
+function connectWS() {
+  return new Promise((res, rej) => {
+    const url = (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws?tg=" + encodeURIComponent(TG ? TG.initData : "");
+    WS = new WebSocket(url);
+    WS.onopen = () => { send({ t: "hello" }); };
+    WS.onmessage = ev => {
+      const m = JSON.parse(ev.data);
+      if (m.t === "hi") { HELLO = m; res(m); }
+      if (m.t === "error" && m.code === "auth") { rej(m.msg); }
+      listeners.slice().forEach(fn => fn(m));
+    };
+    WS.onclose = () => { listeners.slice().forEach(fn => fn({ t: "ws-closed" })); };
+    WS.onerror = () => rej("can't reach the NULLBYTE gateway");
+  });
+}
+function send(m) { if (WS && WS.readyState === 1) WS.send(JSON.stringify(m)); }
+function once(pred, ms = 30000) {
+  return new Promise((res, rej) => {
+    const fn = m => { if (pred(m)) { listeners = listeners.filter(x => x !== fn); clearTimeout(tm); res(m); } };
+    const tm = setTimeout(() => { listeners = listeners.filter(x => x !== fn); rej("timeout"); }, ms);
+    listeners.push(fn);
+  });
+}
+
+/* ======================= UI ======================= */
+let SERVERS = [];
+const app = $("#app");
+function header(right = "") {
+  return `<div class="hdr"><div class="brand">◢◤ UNFINITUM // EFFERENT-008<br><small>⟶ motor pathway · commands out to the fleet</small></div>${right}</div>`;
+}
+function overlay(html) { $("#ovl").innerHTML = `<div class="overlay">${html}</div>`; }
+function closeOverlay() { $("#ovl").innerHTML = ""; }
+
+async function openTunnel(name) {
+  app.innerHTML = header() + `<div class="card sub">[....] opening tunnel <b>${esc(name)}</b> ⟶</div>`;
+  try {
+    const r = await fetch("/api/tunnel-auth", { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "same-origin",
+      body: JSON.stringify({ tg: TG ? TG.initData : "", name }) });
+    const j = await r.json();
+    if (!j.ok) throw j.error || "denied";
+    location.href = j.url;
+  } catch (e) { app.innerHTML = header() + `<div class="warn">tunnel: ${esc(e)}</div>`; }
+}
+async function boot() {
+  if (QS.get("tunnel")) return openTunnel(QS.get("tunnel"));
+  app.innerHTML = header() + `<div class="card sub">[....] handshake with gateway</div>`;
+  try { await connectWS(); } catch (e) {
+    app.innerHTML = header() + `<div class="warn">${esc(e)}<br><br>Open this from the bot (/efferent), not a plain browser tab.</div>`; return;
+  }
+  if (QS.get("watch")) return startWatch(QS.get("watch"));
+  if (HELLO.role !== "operator") { VKEY = "guest"; return home(); }
+  const meta = await vaultMeta();
+  meta ? lockScreen() : setupScreen();
+}
+function setupScreen() {
+  app.innerHTML = header() + `<div class="card"><div class="lockicon">🔐</div>
+    <h3>Create your vault</h3>
+    <div class="sub">Your server list and any passwords or keys are encrypted <b>on this device</b> with a passphrase only you know
+    (PBKDF2-SHA256 · 310k rounds → AES-256-GCM), then synced through Telegram CloudStorage. The bot never sees them at rest.</div>
+    <label>Vault passphrase</label><input class="f secret" type="text" inputmode="text" id="p1" name="nb-p1-x" data-lpignore="true" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <label>Repeat</label><input class="f secret" type="text" inputmode="text" id="p2" name="nb-p2-x" data-lpignore="true" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <label class="row" style="text-transform:none;letter-spacing:0;font-size:13px;color:var(--text)"><input type="checkbox" id="show1"> show passphrase</label>
+    <div class="hint">lose it = lose the vault. CA-mode servers need no secrets at all.</div>
+    <button class="btn p b" style="margin-top:12px" id="mk">Create vault</button></div>`;
+  $("#show1").addEventListener("change", e => { ["#p1", "#p2"].forEach(id => $(id).classList.toggle("secret", !e.target.checked)); });
+  $("#mk").onclick = async () => {
+    const a = $("#p1").value.trim(), b = $("#p2").value.trim();
+    if (a.length < 8) return toast("8+ characters"); if (a !== b) return toast("passphrases differ");
+    $("#mk").textContent = "deriving key…"; await vaultCreate(a); home();
+  };
+}
+function lockScreen() {
+  app.innerHTML = header() + `<div class="card"><div class="lockicon">🔒</div><h3>Vault locked</h3>
+    <input class="f secret" type="text" inputmode="text" id="pp" name="nb-pp-x" data-lpignore="true" placeholder="passphrase" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <label class="row" style="text-transform:none;letter-spacing:0;font-size:13px;color:var(--text)"><input type="checkbox" id="show2"> show passphrase</label>
+    <button class="btn p b" style="margin-top:10px" id="un">Unlock</button>
+    <button class="btn d b" style="margin-top:18px" id="reset">Forgot it? Reset vault</button>
+    <div class="hint">Reset erases the encrypted server list on Telegram's cloud. Nothing can decrypt it without the passphrase, not even the bot.</div></div>`;
+  $("#show2").addEventListener("change", e => { $("#pp").classList.toggle("secret", !e.target.checked); });
+  $("#reset").onclick = async () => {
+    if (!confirm("Erase the vault and every saved server? This cannot be undone.")) return;
+    if (!confirm("Really erase it?")) return;
+    for (const k of await CS.keys()) if (k === "nb_vault" || k.startsWith("nb_s_")) await CS.del(k);
+    toast("vault erased"); setupScreen();
+  };
+  const go = async () => { $("#un").textContent = "deriving…"; if (await vaultUnlock($("#pp").value.trim())) home(); else { $("#un").textContent = "Unlock"; toast("wrong passphrase"); } };
+  $("#un").onclick = go; $("#pp").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); go(); } });
+}
+async function home() {
+  if (VKEY !== "guest") SERVERS = await loadServers();
+  const status = Object.fromEntries((HELLO.servers || []).map(s => [s.host + ":" + s.port + ":" + s.user, s.status]));
+  const color = st => st === "ok" ? "var(--mint)" : st === "warn" ? "var(--amber)" : st === "down" ? "var(--red)" : "var(--faint)";
+  const rows = SERVERS.map((s, i) => {
+    const st = status[s.host + ":" + s.port + ":" + s.user];
+    return `<div class="srv"><span class="dot" style="color:${color(st)}"></span>
+      <div class="grow"><div class="ell"><b>${esc(s.name)}</b></div><div class="sub ell">${esc(s.user)}@${esc(s.host)}:${s.port} · ${s.auth === "ca" ? "CA cert" : s.auth}${s.knock ? " · knock" : ""}</div></div>
+      <button class="btn sm" data-edit="${i}">⋯</button><button class="btn sm p" data-open="${i}">▸ ssh</button></div>`;
+  }).join("");
+  const grants = (HELLO.grants || []).map((g, i) => `<div class="srv"><span class="dot" style="color:var(--violet)"></span>
+      <div class="grow"><div class="ell"><b>${esc(g.name)}</b> ${g.readonly ? '<span class="pill" style="color:var(--amber)">read-only</span>' : ""}</div>
+      <div class="sub">${esc(g.user)}@${esc(g.host)} · expires ${new Date(g.expires * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div></div>
+      <button class="btn sm p" data-grant="${i}">▸ ssh</button></div>`).join("");
+  app.innerHTML = header(`<span class="pill" style="color:var(--mint)">${esc(HELLO.user)}</span>`) +
+    (HELLO.role === "operator" ? `<div class="card"><h3>Servers <button class="btn sm" id="add">＋ add</button></h3>
+      ${rows || `<div class="sub" style="padding:8px 0">No servers yet. Add one, then trust the CA on it (/fx_ca in the bot) for keyless logins.</div>`}</div>` : "") +
+    (grants ? `<div class="card"><h3>Shared with you</h3>${grants}</div>` : (HELLO.role !== "operator" ? `<div class="card sub">Nothing shared with you right now. Ask for a grant link.</div>` : "")) +
+    (HELLO.honeypot ? `<div class="card"><h3>Honeypot</h3><div class="srv"><span class="dot" style="color:var(--mag)"></span><div class="grow"><b>🍯 fake server</b><div class="sub">see exactly what attackers see</div></div><button class="btn sm" id="hp">▸ enter</button></div></div>` : "") +
+    `<div class="hint" style="text-align:center;margin-top:14px">⟶ efferent out · ⟵ afferent in · recorded · 2FA · pinned keys</div>`;
+  if ($("#add")) $("#add").onclick = () => editServer(null);
+  document.querySelectorAll("[data-open]").forEach(b => b.onclick = () => openSession(SERVERS[+b.dataset.open]));
+  document.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => editServer(SERVERS[+b.dataset.edit]));
+  document.querySelectorAll("[data-grant]").forEach(b => b.onclick = () => openSession(null, HELLO.grants[+b.dataset.grant]));
+  if ($("#hp")) $("#hp").onclick = () => openSession({ name: "honeypot", host: HELLO.honeypot.host, port: HELLO.honeypot.port, user: "root", auth: "password", password: "root", fp: HELLO.honeypot.fp });
+  if (QS.get("card") && !home._card) { home._card = 1; try { editServer(JSON.parse(atob(QS.get("card"))), true); } catch (e) {} }
+}
+
+function editServer(s, fromCard = false) {
+  const isNew = !s || fromCard; s = s ? { ...s } : { name: "", host: "", port: 22, user: "root", auth: "ca", knock: "" };
+  app.innerHTML = header(`<button class="btn sm" id="bk">‹ back</button>`) + `<div class="card">
+    <h3>${isNew ? (fromCard ? "Add from connection card" : "Add server") : "Edit " + esc(s.name)}</h3>
+    ${fromCard ? `<div class="sub">Shared by a friend. No secrets were shared, only where to connect + the pinned host key.</div>` : ""}
+    <label>Name</label><input class="f" id="n" value="${esc(s.name)}" placeholder="lab-gpu">
+    <div class="row"><div class="grow"><label>Host</label><input class="f" id="h" value="${esc(s.host)}" placeholder="203.0.113.7" autocapitalize="off"></div>
+      <div style="width:90px"><label>Port</label><input class="f" id="po" type="number" value="${s.port || 22}"></div></div>
+    <label>User</label><input class="f" id="u" value="${esc(s.user)}" autocapitalize="off">
+    <label>Auth</label><div class="seg" id="au">${["ca", "password", "key"].map(a => `<button data-a="${a}" class="${s.auth === a ? "on" : ""}">${a === "ca" ? "CA cert ✦" : a}</button>`).join("")}</div>
+    <div id="secret"></div>
+    <label>Port knock (optional)</label><input class="f" id="k" value="${esc(s.knock || "")}" placeholder="7000,8000,9000">
+    <label>Host key</label><div id="fpbox">${s.fp ? `<div class="fp">${esc(s.fp)}</div>` : `<div class="sub">not pinned yet</div>`}</div>
+    <button class="btn b" style="margin-top:8px" id="probe">⌁ fetch & verify host key</button>
+    <label class="row" style="text-transform:none;letter-spacing:0;font-size:13px;color:var(--text)"><input type="checkbox" id="mon" ${s.monitor !== false ? "checked" : ""}> monitor with health pings + runbooks (CA mode)</label>
+    <button class="btn p b" style="margin-top:12px" id="sv">Save to vault</button>
+    ${!isNew ? `<div class="row" style="margin-top:8px"><button class="btn grow" id="cardbtn">🪪 share card</button><button class="btn d grow" id="del">delete</button></div>` : ""}
+  </div>`;
+  const secretUI = () => {
+    $("#secret").innerHTML = s.auth === "password" ? `<label>Password</label><input class="f" type="password" id="pw" value="${esc(s.password || "")}"><div class="hint">encrypted in your vault · sent to the gateway only for the handshake</div>`
+      : s.auth === "key" ? `<label>Private key</label><textarea class="f" id="pk" placeholder="-----BEGIN OPENSSH PRIVATE KEY-----">${esc(s.key || "")}</textarea><label>Key passphrase</label><input class="f" type="password" id="kp" value="${esc(s.key_pass || "")}">`
+      : `<div class="hint">✦ keyless: the gateway mints a 5-minute certificate per session. Trust the CA once on the server: /fx_ca in the bot.</div>`;
+  };
+  secretUI();
+  $("#au").onclick = e => { const a = e.target.dataset.a; if (!a) return; s.auth = a; $("#au").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.a === a)); secretUI(); };
+  $("#bk").onclick = home;
+  const collect = () => { s.name = $("#n").value.trim() || $("#h").value.trim(); s.host = $("#h").value.trim(); s.port = +$("#po").value || 22; s.user = $("#u").value.trim() || "root"; s.knock = $("#k").value.trim(); s.monitor = $("#mon").checked;
+    if (s.auth === "password") s.password = $("#pw").value; if (s.auth === "key") { s.key = $("#pk").value; s.key_pass = $("#kp").value; } };
+  $("#probe").onclick = async () => {
+    collect(); if (!s.host) return toast("host first");
+    $("#probe").textContent = "⌁ probing…"; send({ t: "probe", host: s.host, port: s.port, knock: s.knock });
+    const m = await once(m => m.t === "fp" || (m.t === "error" && m.code === "probe")).catch(() => ({ t: "error", msg: "timeout" }));
+    $("#probe").textContent = "⌁ fetch & verify host key";
+    if (m.t === "error") return toast(m.msg);
+    if (s.fp && s.fp !== m.fp) {
+      $("#fpbox").innerHTML = `<div class="warn">⚠ HOST KEY CHANGED<br><span class="mono">pinned ${esc(s.fp)}<br>now    ${esc(m.fp)}</span><br>If you didn't rebuild the server, someone may be intercepting. Verify on the server before re-pinning.</div><button class="btn d b" style="margin-top:8px" id="repin">I verified it: re-pin</button>`;
+      $("#repin").onclick = () => { s.fp = m.fp; $("#fpbox").innerHTML = `<div class="fp">${esc(m.fp)}</div>`; toast("re-pinned"); };
+    } else {
+      $("#fpbox").innerHTML = `<div class="fp">${esc(m.fp)}</div><div class="hint">compare on the server: ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub</div>`; s.fp = m.fp;
+    }
+  };
+  $("#sv").onclick = async () => {
+    collect(); if (!s.host) return toast("host?"); if (!s.fp) return toast("verify the host key first");
+    await saveServer(s);
+    if (s.monitor && s.auth === "ca") send({ t: "enroll", name: s.name, host: s.host, port: s.port, user: s.user, fp: s.fp, knock: s.knock });
+    toast("🔐 saved (encrypted)"); home();
+  };
+  if ($("#del")) $("#del").onclick = async () => { if (!confirm("Delete " + s.name + " from your vault?")) return; await csDel(s._k); toast("deleted"); home(); };
+  if ($("#cardbtn")) $("#cardbtn").onclick = async () => {
+    send({ t: "card", server: { name: s.name, host: s.host, port: s.port, user: s.user, fingerprint: s.fp, knock: s.knock } });
+    const m = await once(m => m.t === "card"); shareLink(m.link, "🪪 connection card: host, port, user + pinned key. No secrets inside.");
+  };
+}
+function shareLink(link, text) {
+  try { TG.openTelegramLink("https://t.me/share/url?url=" + encodeURIComponent(link) + "&text=" + encodeURIComponent(text)); }
+  catch (e) { navigator.clipboard && navigator.clipboard.writeText(link); toast("link copied"); }
+}
+
+/* ======================= terminal ======================= */
+let TERM = null, FIT = null, CTRL = false, SESSION = null, onMsg = null;
+function termUI(title, readonly) {
+  $("#termview").classList.remove("hidden"); $("#ttitle").textContent = title;
+  $("#tshare").classList.toggle("hidden", !!readonly);
+  if (!TERM) {
+    TERM = new Terminal({ cursorBlink: true, fontFamily: 'ui-monospace,"JetBrains Mono",Menlo,monospace', fontSize: 13, scrollback: 3000, allowProposedApi: false,
+      theme: { background: "#06070b", foreground: "#dbe3ec", cursor: "#ff7a1a", selectionBackground: "#3df5a644", black: "#1d2230", red: "#ff4d6d", green: "#3df5a6", yellow: "#ffd166", blue: "#7aa2ff", magenta: "#ff4fd8", cyan: "#3ddcff", white: "#dbe3ec" } });
+    FIT = new FitAddon.FitAddon(); TERM.loadAddon(FIT); TERM.open($("#term"));
+    TERM.onData(d => { if (CTRL && d.length === 1) { const c = d.toUpperCase().charCodeAt(0); if (c >= 64 && c <= 95) d = String.fromCharCode(c - 64); CTRL = false; renderKeys(); } send({ t: "i", d }); });
+    window.addEventListener("resize", fitViewport);
+    if (window.visualViewport) { visualViewport.addEventListener("resize", fitViewport); visualViewport.addEventListener("scroll", fitViewport); }
+    if (TG && TG.onEvent) TG.onEvent("viewportChanged", fitViewport);
+    $("#term").addEventListener("click", () => TERM.focus());
+    touchScroll($("#term"));
+  }
+  TERM.options.fontSize = window.innerWidth < 420 ? 11.5 : 13;
+  TERM.reset(); TERM.options.disableStdin = !!readonly; setTimeout(fitViewport, 50); TERM.focus();
+  renderKeys(readonly); renderActs(readonly);
+}
+/* finger scrolling with momentum (xterm only scrolls via its scrollbar on iOS).
+   In full-screen apps (less, vim, htop) a swipe sends ↑/↓ instead. */
+function touchScroll(el) {
+  let lastY = 0, acc = 0, vel = 0, lastT = 0, raf = 0, moved = false;
+  const lineH = () => (el.querySelector(".xterm-rows > div")?.getBoundingClientRect().height) || 15;
+  const step = n => {
+    if (!n) return;
+    if (TERM.buffer.active.type === "alternate") send({ t: "i", d: (n < 0 ? "\x1b[A" : "\x1b[B").repeat(Math.min(Math.abs(n), 5)) });
+    else TERM.scrollLines(n);
+  };
+  const apply = dy => { acc += dy; const lh = lineH(); const n = Math.trunc(acc / lh); if (n) { acc -= n * lh; step(n); } };
+  el.addEventListener("touchstart", e => { cancelAnimationFrame(raf); lastY = e.touches[0].clientY; lastT = performance.now(); vel = 0; acc = 0; moved = false; }, { passive: true });
+  el.addEventListener("touchmove", e => {
+    const y = e.touches[0].clientY, t = performance.now(), dy = lastY - y;
+    if (Math.abs(dy) > 2) moved = true;
+    vel = 0.8 * (dy / Math.max(1, t - lastT)) + 0.2 * vel; lastY = y; lastT = t;
+    apply(dy); e.preventDefault();
+  }, { passive: false });
+  el.addEventListener("touchend", () => {
+    if (!moved) return;
+    let v = vel * 16;
+    const glide = () => { if (Math.abs(v) < 0.5) return; apply(v); v *= 0.94; raf = requestAnimationFrame(glide); };
+    if (TERM.buffer.active.type !== "alternate") raf = requestAnimationFrame(glide);
+  }, { passive: true });
+}
+/* iOS: the on-screen keyboard doesn't shrink the layout viewport, it just covers it.
+   Size the terminal view to the *visible* area so the prompt is always above the keyboard. */
+let _fvT = null;
+function fitViewport() {
+  clearTimeout(_fvT);
+  _fvT = setTimeout(() => {
+    const tv = $("#termview"); if (!tv || tv.classList.contains("hidden")) return;
+    const vv = window.visualViewport;
+    const h = vv ? vv.height : window.innerHeight, top = vv ? vv.offsetTop : 0;
+    tv.style.top = top + "px"; tv.style.bottom = "auto"; tv.style.height = h + "px";
+    tv.classList.toggle("kb", window.innerHeight - h > 120);      // keyboard is up
+    window.scrollTo(0, 0);
+    fitTerm(); if (TERM) TERM.scrollToBottom();
+  }, 30);
+}
+function fitTerm() { try { FIT.fit(); send({ t: "r", cols: TERM.cols, rows: TERM.rows }); } catch (e) {} }
+function renderKeys(ro) {
+  if (ro) { $("#keys").innerHTML = `<span class="sub">👁 read-only · you're watching a live session</span>`; return; }
+  const K = [["esc", "\x1b"], ["tab", "\t"], ["ctrl", null], ["^C", "\x03"], ["↑", "\x1b[A"], ["↓", "\x1b[B"], ["←", "\x1b[D"], ["→", "\x1b[C"], ["|", "|"], ["~", "~"], ["/", "/"], ["-", "-"]];
+  $("#keys").innerHTML = K.map(([l], i) => `<button data-k="${i}" class="${l === "ctrl" && CTRL ? "on" : ""}">${l}</button>`).join("");
+  $("#keys").querySelectorAll("button").forEach(b => b.onclick = () => { const [l, seq] = K[+b.dataset.k]; if (l === "ctrl") { CTRL = !CTRL; renderKeys(); } else send({ t: "i", d: seq }); TERM.focus(); });
+}
+const ACTS = [["disk", "df -h"], ["mem", "free -h"], ["load", "uptime"], ["top", "top -bn1 | head -20"], ["logs", "journalctl -n 40 --no-pager"],
+  ["ports", "ss -tulpn"], ["docker", "docker ps --format 'table {{.Names}}\\t{{.Status}}'"], ["nginx ↻", "sudo systemctl restart nginx && systemctl status nginx --no-pager | head -5", true]];
+function renderActs(ro) {
+  if (ro) { $("#acts").innerHTML = ""; return; }
+  $("#acts").innerHTML = ACTS.map(([l], i) => `<button data-a="${i}">⟶ ${l}</button>`).join("");
+  $("#acts").querySelectorAll("button").forEach(b => b.onclick = () => { const [l, cmd, risky] = ACTS[+b.dataset.a]; if (risky && !confirm(`Run "${cmd}"?`)) return; send({ t: "i", d: cmd + "\r" }); TERM.focus(); });
+}
+function closeTerm() { $("#termview").classList.add("hidden"); if (onMsg) listeners = listeners.filter(x => x !== onMsg); onMsg = null; SESSION = null; }
+$("#tback").onclick = () => { if (SESSION && !confirm("Leave the session? It will be closed.")) return; send({ t: "close" }); closeTerm(); home(); };
+$("#tclose").onclick = () => { send({ t: "close" }); };
+$("#tshare").onclick = async () => { send({ t: "share" }); const m = await once(m => m.t === "shared"); shareLink(m.link, "👁 watch my terminal live (read-only, 1h)"); };
+
+let PENDING = null;   // {s, grant, lost} while waiting for 2FA — survives the app being backgrounded
+function sendOpen(s, grant) {
+  const cols = TERM.cols, rows = TERM.rows;
+  if (grant) send({ t: "open", grant: grant.id, cols, rows, device: deviceId });
+  else send({ t: "open", target: { name: s.name, host: s.host, port: s.port, user: s.user, auth: s.auth, password: s.password, key: s.key, key_pass: s.key_pass, fp: s.fp, knock: s.knock }, cols, rows, device: deviceId });
+}
+async function resumePending() {
+  if (!PENDING || SESSION || !PENDING.lost || document.visibilityState !== "visible") return;
+  PENDING.lost = false;
+  TERM.write("\x1b[32m[efferent]\x1b[0m back · reconnecting…\r\n");
+  try { if (!WS || WS.readyState !== 1) await connectWS(); sendOpen(PENDING.s, PENDING.grant); }
+  catch (e) { PENDING.lost = true; TERM.write(`\x1b[31m[efferent] ${e}\x1b[0m\r\n`); }
+}
+document.addEventListener("visibilitychange", resumePending);
+if (TG && TG.onEvent) TG.onEvent("activated", resumePending);
+async function openSession(s, grant) {
+  PENDING = { s, grant, lost: false };
+  termUI(grant ? grant.name : s.name, false);
+  TERM.write(`\x1b[32m[efferent]\x1b[0m connecting to \x1b[36m${grant ? grant.user + "@" + grant.host : s.user + "@" + s.host + ":" + s.port}\x1b[0m …\r\n`);
+  onMsg = m => {
+    if (m.t === "error" || m.t === "exit") PENDING = null;
+    if (m.t === "o") TERM.write(m.d);
+    else if (m.t === "2fa") TERM.write("\x1b[33m[efferent] 🔐 approve in the bot chat · then come back here (3 min)\x1b[0m\r\n");
+    else if (m.t === "opened") { SESSION = m.sid; PENDING = null; TERM.write(`\x1b[32m[efferent] session #${m.sid} · recorded${m.expires ? " · access ends " + new Date(m.expires * 1000).toLocaleTimeString() : ""}\x1b[0m\r\n`); fitTerm(); }
+    else if (m.t === "exit") { TERM.write(`\r\n\x1b[31m[efferent] session ended (${m.reason})\x1b[0m\r\n`); SESSION = null; }
+    else if (m.t === "error" && m.code === "hostkey") {
+      TERM.write(`\r\n\x1b[41;97m ${m.expected ? "HOST KEY CHANGED" : "HOST KEY NOT PINNED"} \x1b[0m\r\nserver presented ${m.seen}\r\n${m.expected ? "pinned was      " + m.expected + "\r\nconnection aborted before sending credentials." : "edit the server and verify its key first."}\r\n`);
+    } else if (m.t === "error") TERM.write(`\r\n\x1b[31m[efferent] ${m.msg}\x1b[0m\r\n`);
+    else if (m.t === "ws-closed") {
+      if (PENDING && !SESSION) { PENDING.lost = true; TERM.write("\x1b[33m[efferent] paused · approve in the bot, then come back\x1b[0m\r\n"); resumePending(); }
+      else TERM.write("\r\n\x1b[31m[efferent] gateway connection lost\x1b[0m\r\n");
+    }
+  };
+  listeners.push(onMsg);
+  await new Promise(r => setTimeout(r, 80)); fitTerm();
+  sendOpen(s, grant);
+}
+async function startWatch(token) {
+  termUI("watching…", true);
+  onMsg = m => {
+    if (m.t === "watching") { $("#ttitle").textContent = "👁 " + m.label; try { TERM.resize(m.cols, m.rows); } catch (e) {} }
+    else if (m.t === "o") TERM.write(m.d);
+    else if (m.t === "exit") TERM.write(`\r\n\x1b[31m[efferent] the session ended (${m.reason})\x1b[0m\r\n`);
+    else if (m.t === "error") TERM.write(`\r\n\x1b[31m[efferent] ${m.msg}\x1b[0m\r\n`);
+  };
+  listeners.push(onMsg); send({ t: "watch", token });
+  $("#tback").onclick = () => { closeTerm(); if (TG) TG.close(); };
+}
+boot();
+</script>
+</body>
+</html>

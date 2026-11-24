@@ -1,0 +1,24 @@
+#!/usr/bin/env python3
+"""Stand-in for drand's tle, for tests only. Same CLI shape, NO real crypto."""
+import base64, sys, time, re
+GEN, PER = 1692803367, 3
+UNITS = {"s": 1, "m": 60, "h": 3600, "d": 86400, "M": 2592000, "y": 31536000}
+args = sys.argv[1:]
+data = sys.stdin.buffer.read()
+if "-e" in args:
+    d = args[args.index("-D") + 1]
+    secs = int(d[:-1]) * UNITS[d[-1]]
+    rnd = int((time.time() + secs - GEN) // PER) + 1
+    body = f"age-encryption.org/v1\n-> tlock {rnd} {'52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971'}\n".encode() + b"--- \n" + data
+    b64 = base64.b64encode(body).decode()
+    print("-----BEGIN AGE ENCRYPTED FILE-----")
+    for i in range(0, len(b64), 64): print(b64[i:i+64])
+    print("-----END AGE ENCRYPTED FILE-----")
+elif "-d" in args:
+    txt = data.decode()
+    b64 = "".join(l for l in txt.splitlines() if not l.startswith("-----"))
+    raw = base64.b64decode(b64)
+    rnd = int(re.search(rb"-> tlock (\d+)", raw).group(1))
+    if time.time() < GEN + (rnd - 1) * PER:
+        sys.stderr.write("too early to decrypt\n"); sys.exit(1)
+    sys.stdout.buffer.write(raw.split(b"--- \n", 1)[1])

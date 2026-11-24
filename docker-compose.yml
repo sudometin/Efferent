@@ -1,0 +1,23 @@
+services:
+  nullbyte:
+    build: .
+    container_name: nullbyte
+    env_file: .env
+    restart: unless-stopped
+    volumes:
+      - nullbyte-data:/data
+    ports:
+      # Honeypot. Starts on 2222 so nothing breaks.
+      # To catch the real internet noise, move your REAL sshd off port 22 first,
+      # then change this to "22:2222". See README → Honeypot.
+      - "2222:2222"
+      # Ops Mini App + SSH gateway. Bound to localhost: put Caddy/nginx (HTTPS) or a Cloudflare tunnel in front.
+      - "127.0.0.1:8088:8088"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    read_only: true
+    tmpfs: [/tmp]
+    mem_limit: 512m
+
+volumes:
+  nullbyte-data:
